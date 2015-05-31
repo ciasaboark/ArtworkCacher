@@ -91,7 +91,7 @@ class ProviderUpdater {
     }
   
   static updateProviderForAlbum(Artist artist, Album album, Provider provider) async {
-    log.fine("Updating provider: '${provider.source}' for artist: '${artist.name}', album: '{album.name}'");
+    log.fine("Updating provider: '${provider.source}' for artist: '${artist.name}', album: '${album.name}'");
     //TODO update all the providers for the artist
     Db db = new Db("mongodb://127.0.0.1/salix");
     var collection = db.collection("album");

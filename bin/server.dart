@@ -30,7 +30,7 @@ main() async {
   var apiHandler = shelf_rpc.createRpcHandler(_apiServer);
   var pathToBuild = join(dirname(Platform.script.toFilePath()),
         '..', 'admin');
-  var staticHandler = shelf_static.createStaticHandler("admin", defaultDocument:'index.html', serveFilesOutsidePath: true);
+  var staticHandler = shelf_static.createStaticHandler(pathToBuild, defaultDocument:'index.html', serveFilesOutsidePath: true);
   var loggingStaticHandler = const shelf.Pipeline().addMiddleware(shelf.logRequests()).addHandler(staticHandler);
   
   var handler = new shelf.Cascade()

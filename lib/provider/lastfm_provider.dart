@@ -113,20 +113,38 @@ class LastFmProvider {
   }
   
   _processArtistResponse(Artist artist, String response) {
-    List<Map<String, String>> imageSources = new List<Map<String, String>>();
+    List<Map<String, String>> imageSources = null;
+    String artistBio = null;
     Map<String, dynamic> jsonMap = JSON.decode(response);
     try {
       log.finest("searching for root level artist key");
       Map artistMap = jsonMap["artist"];
-      log.finest("searcing for image sources");
-      List<Map> images = artistMap["image"];
-      imageSources = _getImageSourcesFromMap(images);
+      
+      //pull the image sources, if there are any
+      try {
+        log.finest("searcing for image sources");
+        List<Map> images = artistMap["image"];
+        imageSources = _getImageSourcesFromMap(images);
+      } catch (err) {
+        log.fine("unable to find any image sources for artist: ${artist.name}, skipping this field");
+      }
+      
+      //pull the artist bio information, if there is any
+      try {
+        log.finest("searching for artist bio info");
+        Map bioMap = artistMap["bio"];
+        artistBio = bioMap["content"];
+      } catch (err) {
+        log.fine("unable to find any bio information for artist: ${artist.name}, skipping this field");
+      }
+      
       log.fine("inserting new last.fm provider info for artist: '$artist'");
       DateTime expireDate = new DateTime.now().add(new Duration(days: _expireDays));
       Provider lastfmProvider = new Provider("lastfm", 
                       new DateTime.now().toString(),
-                      expireDate.toString(),
-                      imageSources);
+                      expires: expireDate.toString(),
+                      img_resources: imageSources,
+                      info: artistBio);
       ProviderUpdater.updateProviderForArtist(artist, lastfmProvider);
     } catch (err) {
       log.warning("did not receive correct response from last.fm artist query, will not update" +
@@ -136,19 +154,37 @@ class LastFmProvider {
   
   
   _processAlbumResponse(Artist artist, Album album, String response) {
-    List<Map<String, String>> imageSources = new List<Map<String, String>>();
+    List<Map<String, String>> imageSources = null;
+    String albumInfo = null;
     Map<String, dynamic> jsonMap = JSON.decode(response);
     log.finest("searching for root level album key");
     try {
       Map albumMap = jsonMap["album"]; 
-      List<Map> images = albumMap["image"];
-      imageSources = _getImageSourcesFromMap(images);
+     
+      //fetch the album cover art, if there is any
+      try {
+        List<Map> images = albumMap["image"];
+        imageSources = _getImageSourcesFromMap(images);
+      } catch (err) {
+        log.fine("unable to find any image sources for artist: ${artist.name}, album: ${album.name}, skipping this field");
+      }
+      
+      //pull the album information text, if there is any
+      try {
+        log.finest("searching for artist bio info");
+        Map wikiMap = albumMap["wiki"];
+        albumInfo = wikiMap["content"];
+      } catch (err) {
+        log.fine("unable to find any info text for artist: ${artist.name}, album: ${album.name}, skipping this field");
+      }
+      
       log.fine("inserting new last.fm provider info for artist: '$artist'");
       DateTime expireDate = new DateTime.now().add(new Duration(days: _expireDays));
       Provider lastfmProvider = new Provider("lastfm", 
-                      new DateTime.now().toString(),
-                      expireDate.toString(),
-                      imageSources);
+                       new DateTime.now().toString(),
+                      expires: expireDate.toString(),
+                      img_resources: imageSources,
+                      info: albumInfo);
         ProviderUpdater.updateProviderForAlbum(artist, album, lastfmProvider);
       
     } catch (err) {
