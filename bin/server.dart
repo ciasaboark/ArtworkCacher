@@ -14,8 +14,10 @@ final ApiServer _apiServer = new ApiServer(prettyPrint: true);
 
 main() async {
   Logger.root
-      ..level = Level.INFO
-      ..onRecord.listen(print);
+      ..level = Level.ALL
+      ..onRecord.listen((LogRecord rec) {
+        print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
+      });
   
   _apiServer.addApi(new ArtworkApi());
   HttpServer server = await HttpServer.bind(InternetAddress.ANY_IP_V4,8089);

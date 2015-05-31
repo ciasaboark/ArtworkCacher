@@ -1,4 +1,4 @@
-library simpleServer.messages;
+library salix.messages;
 
 import 'package:rpc/api.dart';
 

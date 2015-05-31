@@ -1,19 +1,15 @@
-name: 'ArtworkCacher'
+name: salix
 version: 0.0.1
-description: A web server built using the shelf package.
-#author: <your name> <email@example.com>
-#homepage: https://www.example.com
+description: A RESTful web service for caching metadata.  Part of Canorum.
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  args: '>=0.10.0 <0.14.0'
-  shelf: '>=0.6.0 <0.7.0'
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
+  args: '>=0.10.0 <0.14.0'
   browser: ^0.10.0+2
   crypto: ^0.9.0
-  args: '>=0.10.0 <0.14.0'
-  rpc: ^0.4.1
   http: ^0.11.1
   logging_handlers: ^0.8.0
-  mongo_dart: "^0.1.47"
-  
+  mongo_dart: ^0.1.47
+  rpc: ^0.4.1
+  shelf: '>=0.6.0 <0.7.0'

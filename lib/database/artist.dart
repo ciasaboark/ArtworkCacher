@@ -1,4 +1,4 @@
-library artworkCacher.artist;
+library salix.artist;
 
 class Artist {
   static final String KEY_HITS = "hits";

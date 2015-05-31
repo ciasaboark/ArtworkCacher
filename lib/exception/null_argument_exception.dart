@@ -1,4 +1,4 @@
-part of artworkCacher.exception;
+part of salix.exception;
 
 class NullArgumentException {
   final String msg;
