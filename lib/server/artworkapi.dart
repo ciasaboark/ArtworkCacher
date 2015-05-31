@@ -3,7 +3,7 @@ library salix.server;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:rpc/api.dart';
+import 'package:rpc/rpc.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:logging/logging.dart';
 

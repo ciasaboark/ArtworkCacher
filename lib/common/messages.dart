@@ -1,6 +1,6 @@
 library salix.messages;
 
-import 'package:rpc/api.dart';
+import 'package:rpc/rpc.dart';
 
 class Response {
   
