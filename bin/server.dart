@@ -19,26 +19,26 @@ final ApiServer _apiServer = new ApiServer(prettyPrint: true);
 
 main() async {
   Logger.root
-      ..level = Level.ALL
-      ..onRecord.listen((LogRecord rec) {
-        print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
-      });
+    ..level = Level.INFO
+    ..onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
+  });
   Logger log = new Logger("Salix");
   log.info("Starting...");
   _apiServer.addApi(new ArtworkApi());
-  
+
   var apiHandler = shelf_rpc.createRpcHandler(_apiServer);
   var pathToBuild = join(dirname(Platform.script.toFilePath()),
-        '..', 'admin');
+  '..', 'web');
   var staticHandler = shelf_static.createStaticHandler(pathToBuild, defaultDocument:'index.html', serveFilesOutsidePath: true);
   var loggingStaticHandler = const shelf.Pipeline().addMiddleware(shelf.logRequests()).addHandler(staticHandler);
-  
+
   var handler = new shelf.Cascade()
-    .add(loggingStaticHandler)  
-    .add(apiHandler)
-    .handler;
+  .add(loggingStaticHandler)
+  .add(apiHandler)
+  .handler;
 
   HttpServer server = (await io.serve(handler, 'localhost', 8080));
-  
+
   log.info('Server listening on http://${server.address.host}:${server.port}');
 }

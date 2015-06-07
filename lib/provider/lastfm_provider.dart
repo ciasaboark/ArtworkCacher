@@ -12,20 +12,20 @@ class LastFmProvider {
     assert(artist != null);
     assert(album != null);
     if (_shouldProviderBeUpdated(jsonMap)) {
-      log.fine("provider for artist: ${artist.name}, album: ${album.name} should be updated");
+      log.info("updating information for artist: ${artist.name}, album: ${album.name}");
       fetchAndUpdateAlbum(artist, album);
     } else {
-      log.fine("provider for artist: ${artist.name}, album: ${album.name} does not need to be updated");
+      log.info("skipping update for artist: ${artist.name}, album: ${album.name}");
     }
   }
   
   void updateLastFMProviderForArtistIfNeeded(Artist artist, Map jsonMap) {
     assert(artist != null);
     if (_shouldProviderBeUpdated(jsonMap)) {
-      log.fine("provider for artist: $artist should be updated");
+      log.info("updating information for artist: ${artist.name}");
       fetchAndUpdateArtist(artist);
     } else {
-      log.fine("provider for artist: $artist does not need to be updated");
+      log.info("skipping update for artist: ${artist.name}");
     }
   }
   
@@ -44,7 +44,7 @@ class LastFmProvider {
             DateTime now = new DateTime.now();
             DateTime expireDate = DateTime.parse(expires);
             if (expireDate.millisecondsSinceEpoch <= now.millisecondsSinceEpoch) {
-              updateProvider;
+              updateProvider = true;
             }
           }
         }
@@ -58,7 +58,7 @@ class LastFmProvider {
   }
   
   
-  Future fetchAndUpdateArtist(Artist artist) async {
+  fetchAndUpdateArtist(Artist artist) async {
     if (artist == null) {
       throw new NullArgumentException("artist can not be null");
     }
@@ -89,7 +89,7 @@ class LastFmProvider {
             log.finest("received chunk: ${contents.toString().length} characters");
             responseString += contents.toString();
           }, onDone: () {
-            log.fine("received complete response: $response");
+            log.fine("received complete response: $responseString");
             completer.complete(responseString);
           }).onError((err) {
             log.warning("caught error transforming body response bytes to UTF8 string");
@@ -171,7 +171,7 @@ class LastFmProvider {
       
       //pull the album information text, if there is any
       try {
-        log.finest("searching for artist bio info");
+        log.finest("searching for album description info");
         Map wikiMap = albumMap["wiki"];
         albumInfo = wikiMap["content"];
       } catch (err) {
@@ -226,7 +226,7 @@ class LastFmProvider {
     return imageSources;
   }
   
-  Map<String, String> fetchAndUpdateAlbum(Artist artist, Album album) {
+  fetchAndUpdateAlbum(Artist artist, Album album) async {
     if (artist == null) {
       throw new NullArgumentException("artist can not be null");
     }

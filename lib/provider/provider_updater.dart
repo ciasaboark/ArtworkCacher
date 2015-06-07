@@ -8,14 +8,16 @@ class ProviderUpdater {
   static updateProviderForArtist(Artist artist, Provider provider) async {
     log.fine("Updating provider: '${provider.source}' for artist: '$artist'");
     //TODO update all the providers for the artist
-    Db db = new Db("mongodb://127.0.0.1/salix");
+    Db db = new Db("mongodb://phobotic.io/salix");
     var collection = db.collection("artists");
     db.open().then((_) {
       collection.findOne(where.eq('artist', "${artist.name}")).then((row) {
         List<Map<String, dynamic>> sources = new List<Map<String, dynamic>>();
         if (row == null || row.isEmpty) {
           row = {};
-        } else if (row.containsKey("sources")) {
+        }
+        
+        if (row.containsKey("sources")) {
           /// document has at least one source already.  If it contains this provider
           /// then remove it and insert the new version.  To avoid a concurrent modification
           /// error we have to do this as a mark and sweep
@@ -32,13 +34,34 @@ class ProviderUpdater {
           toRemove = null;
         }
         
+        
+        //set the outer expire date to this expire date if it is less
+        String expireString = null;
+        DateTime providerExpireDate = null;
+        try {
+          providerExpireDate = DateTime.parse(provider.expires);
+          DateTime curExpire = DateTime.parse(row['expires']);
+          if (curExpire.millisecondsSinceEpoch > providerExpireDate.millisecondsSinceEpoch) {
+            log.fine("current expire date for artist: ${artist.name}: ${curExpire.toString()} is less than the provider "
+              "expire date: ${providerExpireDate.toString()}, updating");
+            expireString = providerExpireDate.toString();
+          } else {
+            log.fine("current expire date for artist: ${artist.name}: ${curExpire.toString()} is greater than the provider "
+            "expire date: ${providerExpireDate.toString()}, will not update");
+            expireString = curExpire.toString();
+          }
+        } catch (err) {
+          log.fine("error getting expire date for artist: ${artist.name}, err: ${err.toString()}");
+          DateTime expires = new DateTime.now().add(new Duration(days: 7));
+          expireString = expires.toString();
+        }
+        
+        
         sources.add(provider.toMap());
         DateTime timestamp = new DateTime.now();
-        int now = timestamp.millisecondsSinceEpoch;
-        DateTime expires = timestamp.add(new Duration(days: 7));
         row["artist"] = artist.name;
         row["createdAt"] = timestamp.toString();
-        row["expires"] = expires.toString();
+        row["expires"] = expireString;
         row["sources"] = sources;
         
         insertDocumentToArtistsCollection(artist, row);
@@ -54,7 +77,7 @@ class ProviderUpdater {
   
   static insertDocumentToArtistsCollection(Artist artist, Map document) {
     ("Inserting new document for artist: '$artist'");
-    Db db = new Db("mongodb://127.0.0.1/salix");
+    Db db = new Db("mongodb://phobotic.io/salix");
     DbCollection artists;
     db.open().then((_) {
       artists = db.collection("artists");
@@ -72,8 +95,8 @@ class ProviderUpdater {
   }
   
   static insertDocumentToAlbumCollection(Artist artist, Album album, Map document) {
-      ("Inserting new document for artist: '$artist'");
-      Db db = new Db("mongodb://127.0.0.1/salix");
+      log.fine("Inserting new document for artist: '${artist.name}', album: ${album.name}");
+      Db db = new Db("mongodb://phobotic.io/salix");
       DbCollection artists;
       db.open().then((_) {
         artists = db.collection("album");
@@ -93,14 +116,16 @@ class ProviderUpdater {
   static updateProviderForAlbum(Artist artist, Album album, Provider provider) async {
     log.fine("Updating provider: '${provider.source}' for artist: '${artist.name}', album: '${album.name}'");
     //TODO update all the providers for the artist
-    Db db = new Db("mongodb://127.0.0.1/salix");
+    Db db = new Db("mongodb://phobotic.io/salix");
     var collection = db.collection("album");
     db.open().then((_) {
       collection.findOne(where.eq('artist', "${artist.name}").eq('album', "${album.name}")).then((row) {
         List<Map<String, dynamic>> sources = new List<Map<String, dynamic>>();
         if (row == null || row.isEmpty) {
           row = {};
-        } else if (row.containsKey("sources")) {
+        }
+        
+        if (row.containsKey("sources")) {
           /// document has at least one source already.  If it contains this provider
           /// then remove it and insert the new version.  To avoid a concurrent modification
           /// error we have to do this as a mark and sweep
@@ -117,13 +142,34 @@ class ProviderUpdater {
           toRemove = null;
         }
         
+        //set the outer expire date to this expire date if it is less
+        String expireString = null;
+        DateTime providerExpireDate = null;
+        try {
+          providerExpireDate = DateTime.parse(provider.expires);
+          DateTime curExpire = DateTime.parse(row['expires']);
+          if (curExpire.millisecondsSinceEpoch > providerExpireDate.millisecondsSinceEpoch) {
+            log.fine("current expire date for artist: ${artist.name}, album: ${album.name}: ${curExpire.toString()} is less than the provider "
+              "expire date: ${providerExpireDate.toString()}, updating");
+            expireString = providerExpireDate.toString();
+          } else {
+            log.fine("current expire date for artist: ${artist.name}, album: ${album.name}: ${curExpire.toString()} is greater than the provider "
+            "expire date: ${providerExpireDate.toString()}, will not update");
+            expireString = curExpire.toString();
+          }
+        } catch (err) {
+          log.fine("error getting expire date for artist: ${artist.name}, album: ${album.name}, err: ${err.toString()}");
+          DateTime expires = new DateTime.now().add(new Duration(days: 7));
+          expireString = expires.toString();
+        }
+        
         sources.add(provider.toMap());
         DateTime now = new DateTime.now();
-        DateTime expires = now.add(new Duration(days: 7));
+        
         row["artist"] = artist.name;
         row["album"] = album.name;
         row["createdAt"] = now.toString();
-        row["expires"] = expires.toString();
+        row["expires"] = expireString;
         row["sources"] = sources;
         
         insertDocumentToAlbumCollection(artist, album, row);
